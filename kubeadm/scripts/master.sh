@@ -24,7 +24,13 @@ export KUBECONFIG=/etc/kubernetes/admin.conf
 chmod 644 /etc/kubernetes/admin.conf
 echo "KUBECONFIG=/etc/kubernetes/admin.conf" >> /etc/environment
 
-kubectl apply -f /vagrant/manifests/kube-flannel-v0.28.1.yml
-
 kubeadm token create --print-join-command > /vagrant/generated/join-command.sh
 chmod +x /vagrant/generated/join-command.sh
+
+# Install Flannel as the CNI, but patch it with --iface=eth1.
+# Flannel otherwise picks the VM's NAT adapter (eth0) instead of the private network (eth1) the nodes
+# actually use to reach each other, so pods would only be able to talk to other pods on the same node.
+FLANNEL_VERSION=v0.28.1
+curl -fsSL "https://raw.githubusercontent.com/flannel-io/flannel/${FLANNEL_VERSION}/Documentation/kube-flannel.yml" \
+  | sed '/--kube-subnet-mgr/a\        - --iface=eth1' \
+  | kubectl apply -f -
