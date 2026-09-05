@@ -34,3 +34,8 @@ FLANNEL_VERSION=v0.28.1
 curl -fsSL "https://raw.githubusercontent.com/flannel-io/flannel/${FLANNEL_VERSION}/Documentation/kube-flannel.yml" \
   | sed '/--kube-subnet-mgr/a\        - --iface=eth1' \
   | kubectl apply -f -
+
+# Install local-path-provisioner so PVCs work out of the box, and mark its StorageClass as the cluster default.
+LOCAL_PATH_PROVISIONER_VERSION=v0.0.37
+kubectl apply -f "https://raw.githubusercontent.com/rancher/local-path-provisioner/refs/tags/${LOCAL_PATH_PROVISIONER_VERSION}/deploy/local-path-storage.yaml"
+kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
