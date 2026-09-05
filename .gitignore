@@ -1,0 +1,6 @@
+.DS_Store
+
+# kubeadm: Vagrant machine state and generated, short-lived cluster artifacts
+kubeadm/.vagrant/
+kubeadm/generated/*
+!kubeadm/generated/.gitkeep
