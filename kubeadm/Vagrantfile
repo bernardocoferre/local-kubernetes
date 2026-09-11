@@ -25,7 +25,8 @@ Vagrant.configure("2") do |config|
         end
     end
 
-    (1..2).each do |i|
+    WORKER_COUNT = 2
+    (1..WORKER_COUNT).each do |i|
         config.vm.define "worker-#{i}" do |worker|
             worker.vm.box = "bento/ubuntu-24.04"
             worker.vm.box_version = "202510.26.0"
@@ -37,6 +38,14 @@ Vagrant.configure("2") do |config|
             worker.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: "/home/vagrant/.ssh/personal_key.pub"
             worker.vm.provision "shell", path: "scripts/common.sh"
             worker.vm.provision "shell", path: "scripts/worker.sh"
+
+            # Install cluster addons that depend on the full cluster being available
+            if i == WORKER_COUNT
+              worker.trigger.after :up do |trigger|
+                trigger.name = "Cluster addons (post-provisioning)"
+                trigger.run = {path: "scripts/post-provision.sh", args: ["master-1"]}
+              end
+            end
 
             worker.vm.provider "virtualbox" do |vb|
               vb.gui = false
